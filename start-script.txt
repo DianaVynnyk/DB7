@@ -1,0 +1,39 @@
+#!/bin/bash
+
+echo "----------Start script--------------"
+echo "Remove old container"
+docker rm -vf $(docker ps -a -q)
+docker rmi -f $(docker images -a -q)
+
+echo "-----------Remove dicertory---------"
+cd /
+rm -rf docker-spring-boot
+
+if ! [ -d /path/docker-spring-boot/ ]; then
+echo "create directory: docker-spring-boot"
+mkdir /docker-spring-boot
+fi
+
+echo "--------------download GitHub repository---------"
+cd /docker-spring-boot
+git clone https://github.com/DianaVynnyk/DB7.git
+echo "download complete"
+
+sudo firewall-cmd --zone=public --add-port=8086/tcp --permanent
+
+echo "--------------Create containers----------------"
+cd /ls/DB7
+mkdir /docker-spring-boot/db
+sudo docker run --name mysql-yuka -e MYSQL_ROOT_PASSWORD=73903142 -e MYSQL_DATABASE=pharmacy -e MYSQL_USER=yuka -e MYSQL_PASSWORD=73903142 -d mysql:8
+docker build . -t docker-spring-boot
+docker run -p 8086:8086 --name docker-spring-boot --link mysql-yuka:mysql -d docker-spring-boot
+
+docker exec -i mysql-yuka mysql -u yuka -p 73903142 pharmacy < /docker-spring-boot/DB7/lab7.sql
+
+cd /yuka
+rm -f logs-sript
+cp /docker-spring-boot/DB7/logs-sript.txt /yuka
+chmod +x logs-sript.txt
+echo "-----------------Finish---------------"
+
+./logs-sript.txt
